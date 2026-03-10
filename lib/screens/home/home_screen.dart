@@ -20,23 +20,10 @@ class HomeScreen extends StatelessWidget {
               const SizedBox(height: 32),
               Row(
                 children: [
-                  Container(
+                  Image.asset(
+                    'assets/logo.png',
                     width: 40,
                     height: 40,
-                    decoration: BoxDecoration(
-                      color: AppTheme.black,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        'S',
-                        style: TextStyle(
-                          color: AppTheme.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
                   ),
                   const SizedBox(width: 12),
                   const Text(
