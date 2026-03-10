@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/theme/app_theme.dart';
-import 'screens/home/home_screen.dart';
+import 'screens/splash/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,7 +25,7 @@ class SudomiaApp extends StatelessWidget {
       title: 'Sudomia',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
-      home: const HomeScreen(),
+      home: const SplashScreen(),
     );
   }
 }
