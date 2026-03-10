@@ -27,7 +27,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   const Text(
-                    'Sudomia',
+                    'Sudova',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w700,

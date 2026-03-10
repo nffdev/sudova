@@ -13,16 +13,16 @@ void main() {
       systemNavigationBarIconBrightness: Brightness.dark,
     ),
   );
-  runApp(const SudomiaApp());
+  runApp(const SudovaApp());
 }
 
-class SudomiaApp extends StatelessWidget {
-  const SudomiaApp({super.key});
+class SudovaApp extends StatelessWidget {
+  const SudovaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Sudomia',
+      title: 'Sudova',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.theme,
       home: const SplashScreen(),
