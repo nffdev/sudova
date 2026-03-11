@@ -160,7 +160,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               value: value,
               onChanged: onChanged,
               activeThumbColor: AppTheme.black,
-              activeTrackColor: AppTheme.darkGray,
+              activeTrackColor: AppTheme.ultraLightGray,
               inactiveThumbColor: AppTheme.lightGray,
               inactiveTrackColor: AppTheme.ultraLightGray,
             ),
