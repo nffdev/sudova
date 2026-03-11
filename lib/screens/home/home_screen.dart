@@ -4,6 +4,7 @@ import '../../widgets/game_card.dart';
 import '../sudoku/sudoku_screen.dart';
 import '../mental_calc/mental_calc_screen.dart';
 import '../crossmath/crossmath_screen.dart';
+import '../settings/settings_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -33,6 +34,25 @@ class HomeScreen extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                       color: AppTheme.black,
                       letterSpacing: -1.0,
+                    ),
+                  ),
+                  const Spacer(),
+                  GestureDetector(
+                    onTap: () => _navigateTo(context, const SettingsScreen()),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.lightGray.withValues(alpha: 0.3),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.settings_outlined,
+                        size: 20,
+                        color: AppTheme.mediumGray,
+                      ),
                     ),
                   ),
                 ],
