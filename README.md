@@ -23,4 +23,4 @@ Built with [Flutter](https://flutter.dev).
 
 ## License
 
-MIT
+[MIT](LICENSE)
