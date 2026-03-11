@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/haptic.dart';
 
@@ -85,9 +86,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 trailing: 'v1.0.0',
               ),
               const SizedBox(height: 12),
-              _buildInfoTile(
-                icon: Icons.code_rounded,
-                title: 'Made by nffdev',
+              GestureDetector(
+                onTap: () => launchUrl(
+                  Uri.parse('https://github.com/nffdev'),
+                  mode: LaunchMode.externalApplication,
+                ),
+                child: _buildInfoTile(
+                  icon: Icons.code_rounded,
+                  title: 'Made by nffdev',
+                  trailing: '↗',
+                ),
               ),
               const Spacer(),
               Center(
