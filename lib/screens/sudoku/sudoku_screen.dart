@@ -195,7 +195,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
     Color bgColor = AppTheme.white;
     if (isSelected) {
-      bgColor = AppTheme.black;
+      bgColor = AppTheme.black.withValues(alpha: 0.15);
     } else if (isSameNumber) {
       bgColor = AppTheme.black.withValues(alpha: 0.08);
     } else if (isInSelectedRowOrCol || isInSelectedBox) {
@@ -235,13 +235,11 @@ class _SudokuScreenState extends State<SudokuScreen> {
                     fontSize: 20,
                     fontWeight:
                         isFixed ? FontWeight.w700 : FontWeight.w400,
-                    color: isSelected
-                        ? AppTheme.white
-                        : isError
-                            ? AppTheme.error
-                            : isFixed
-                                ? AppTheme.black
-                                : AppTheme.darkGray,
+                    color: isError
+                        ? AppTheme.error
+                        : isFixed
+                            ? AppTheme.black
+                            : AppTheme.darkGray,
                   ),
                 )
               : null,
