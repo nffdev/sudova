@@ -252,26 +252,22 @@ class _CrossMathScreenState extends State<CrossMathScreen> {
     Color textColor;
     Color borderColor;
 
-    if (isSelected) {
-      bgColor = AppTheme.black;
-      textColor = AppTheme.white;
-      borderColor = AppTheme.black;
-    } else if (isHidden && !hasValue) {
-      bgColor = AppTheme.ultraLightGray;
+    if (isHidden && !hasValue) {
+      bgColor = isSelected ? AppTheme.black.withValues(alpha: 0.15) : AppTheme.ultraLightGray;
       textColor = AppTheme.lightGray;
-      borderColor = AppTheme.lightGray.withValues(alpha: 0.5);
+      borderColor = isSelected ? AppTheme.black : AppTheme.lightGray.withValues(alpha: 0.5);
     } else if (hasError) {
-      bgColor = AppTheme.white;
+      bgColor = isSelected ? AppTheme.error.withValues(alpha: 0.1) : AppTheme.white;
       textColor = AppTheme.error;
-      borderColor = AppTheme.error.withValues(alpha: 0.4);
+      borderColor = AppTheme.error.withValues(alpha: isSelected ? 1.0 : 0.4);
     } else if (isHidden && isCorrect) {
-      bgColor = AppTheme.white;
+      bgColor = isSelected ? AppTheme.success.withValues(alpha: 0.1) : AppTheme.white;
       textColor = AppTheme.success;
-      borderColor = AppTheme.success.withValues(alpha: 0.4);
+      borderColor = AppTheme.success.withValues(alpha: isSelected ? 1.0 : 0.4);
     } else {
-      bgColor = AppTheme.white;
+      bgColor = isSelected ? AppTheme.black.withValues(alpha: 0.15) : AppTheme.white;
       textColor = AppTheme.black;
-      borderColor = AppTheme.black.withValues(alpha: 0.15);
+      borderColor = isSelected ? AppTheme.black : AppTheme.black.withValues(alpha: 0.15);
     }
 
     return GestureDetector(
