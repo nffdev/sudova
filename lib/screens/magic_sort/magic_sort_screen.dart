@@ -13,42 +13,66 @@ class MagicSortScreen extends StatefulWidget {
   State<MagicSortScreen> createState() => _MagicSortScreenState();
 }
 
-class _MagicSortScreenState extends State<MagicSortScreen> {
+class _MagicSortScreenState extends State<MagicSortScreen>
+    with SingleTickerProviderStateMixin {
   Difficulty _difficulty = Difficulty.easy;
   late MagicSortModel _game;
   int? _selectedBottle;
   bool _isComplete = false;
   final _timerKey = GlobalKey<GameTimerState>();
 
+  late AnimationController _pourController;
+  int? _pourFrom;
+  int? _pourTo;
+  int? _pourColor;
+  int _pourCount = 0;
+
   static const List<Color> _palette = [
-    Color(0xFFE57373), 
-    Color(0xFF64B5F6), 
-    Color(0xFF81C784), 
-    Color(0xFFFFD54F), 
-    Color(0xFFBA68C8), 
-    Color(0xFFFF8A65), 
-    Color(0xFF4DB6AC), 
-    Color(0xFFF06292), 
-    Color(0xFFA1887F), 
+    Color(0xFFE57373),
+    Color(0xFF64B5F6),
+    Color(0xFF81C784),
+    Color(0xFFFFD54F),
+    Color(0xFFBA68C8),
+    Color(0xFFFF8A65),
+    Color(0xFF4DB6AC),
+    Color(0xFFF06292),
+    Color(0xFFA1887F),
   ];
 
   @override
   void initState() {
     super.initState();
+    _pourController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 550),
+    );
     _newGame();
   }
 
+  @override
+  void dispose() {
+    _pourController.dispose();
+    super.dispose();
+  }
+
   void _newGame() {
+    _pourController.reset();
     setState(() {
       _game = MagicSortModel.generate(_difficulty);
       _selectedBottle = null;
       _isComplete = false;
+      _pourFrom = null;
+      _pourTo = null;
+      _pourColor = null;
+      _pourCount = 0;
     });
     _timerKey.currentState?.reset();
   }
 
-  void _onBottleTap(int index) {
-    if (_isComplete) return;
+  bool get _isPouring => _pourController.isAnimating;
+
+  Future<void> _onBottleTap(int index) async {
+    if (_isComplete || _isPouring) return;
     if (_selectedBottle == null) {
       if (_game.bottles[index].isEmpty) return;
       Haptic.selection();
@@ -61,28 +85,96 @@ class _MagicSortScreenState extends State<MagicSortScreen> {
       return;
     }
     if (_game.canPour(_selectedBottle!, index)) {
-      Haptic.light();
-      setState(() {
-        _game.pour(_selectedBottle!, index);
-        _selectedBottle = null;
-        if (_game.isComplete) {
-          _isComplete = true;
-          Haptic.medium();
-        }
-      });
+      await _performPour(_selectedBottle!, index);
     } else {
       Haptic.selection();
       setState(() => _selectedBottle = index);
     }
   }
 
+  Future<void> _performPour(int from, int to) async {
+    final color = _game.bottles[from].last;
+    final count = _computePourCount(from, to);
+    Haptic.light();
+
+    setState(() {
+      _pourFrom = from;
+      _pourTo = to;
+      _pourColor = color;
+      _pourCount = count;
+      _selectedBottle = null;
+    });
+
+    await _pourController.forward(from: 0);
+
+    setState(() {
+      _game.pour(from, to);
+      _pourFrom = null;
+      _pourTo = null;
+      _pourColor = null;
+      _pourCount = 0;
+      if (_game.isComplete) {
+        _isComplete = true;
+        Haptic.medium();
+      }
+    });
+  }
+
+  int _computePourCount(int from, int to) {
+    if (_game.bottles[from].isEmpty) return 0;
+    final topColor = _game.bottles[from].last;
+    int count = 0;
+    int i = _game.bottles[from].length - 1;
+    while (i >= 0 &&
+        _game.bottles[from][i] == topColor &&
+        _game.bottles[to].length + count < _game.capacity) {
+      count++;
+      i--;
+    }
+    return count;
+  }
+
   void _undo() {
-    if (!_game.canUndo) return;
+    if (!_game.canUndo || _isPouring) return;
     Haptic.light();
     setState(() {
       _game.undo();
       _selectedBottle = null;
     });
+  }
+
+  List<int> _visibleBottle(int index) {
+    final current = List<int>.from(_game.bottles[index]);
+    if (!_isPouring || _pourFrom == null) return current;
+
+    final t = _pourController.value;
+    int transferred;
+    if (t <= 0.3) {
+      transferred = 0;
+    } else if (t >= 0.7) {
+      transferred = _pourCount;
+    } else {
+      transferred = (((t - 0.3) / 0.4) * _pourCount).floor();
+    }
+
+    if (index == _pourFrom) {
+      for (int i = 0; i < transferred && current.isNotEmpty; i++) {
+        current.removeLast();
+      }
+    } else if (index == _pourTo) {
+      for (int i = 0; i < transferred; i++) {
+        current.add(_pourColor!);
+      }
+    }
+    return current;
+  }
+
+  double _tiltAmount(int index) {
+    if (!_isPouring || index != _pourFrom) return 0;
+    final t = _pourController.value;
+    if (t < 0.3) return t / 0.3;
+    if (t > 0.7) return (1.0 - t) / 0.3;
+    return 1.0;
   }
 
   @override
@@ -142,15 +234,18 @@ class _MagicSortScreenState extends State<MagicSortScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: _buildBottleGrid(),
+                child: AnimatedBuilder(
+                  animation: _pourController,
+                  builder: (context, _) => _buildBottleGrid(),
+                ),
               ),
             ),
             if (_isComplete)
               Padding(
                 padding: const EdgeInsets.only(bottom: 24, top: 8),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 20, vertical: 10),
                   decoration: BoxDecoration(
                     color: AppTheme.black,
                     borderRadius: BorderRadius.circular(12),
@@ -203,54 +298,133 @@ class _MagicSortScreenState extends State<MagicSortScreen> {
   }
 
   Widget _buildBottle(int index) {
-    final bottle = _game.bottles[index];
+    final bottle = _visibleBottle(index);
     final isSelected = _selectedBottle == index;
+    final isSource = _pourFrom == index && _isPouring;
+    final tilt = _tiltAmount(index);
+
+    final raise = isSelected ? -10.0 : 0.0;
+    final extraRaise = isSource ? -22.0 * tilt : 0.0;
+    final rotation = isSource ? -0.45 * tilt : 0.0;
 
     return GestureDetector(
       onTap: () => _onBottleTap(index),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0, isSelected ? -10 : 0, 0),
-        child: AspectRatio(
-          aspectRatio: 0.35,
-          child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: isSelected
-                    ? AppTheme.black
-                    : AppTheme.lightGray.withValues(alpha: 0.5),
-                width: isSelected ? 2 : 1.2,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: AppTheme.black.withValues(alpha: 0.12),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Column(
-                children: [
-                  Expanded(
-                    flex: _game.capacity - bottle.length,
-                    child: Container(color: AppTheme.white),
+      child: Transform.translate(
+        offset: Offset(0, raise + extraRaise),
+        child: Transform.rotate(
+          angle: rotation,
+          alignment: Alignment.bottomRight,
+          child: AspectRatio(
+            aspectRatio: 0.35,
+            child: _bottleBody(bottle, isSelected),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _bottleBody(List<int> bottle, bool isSelected) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isSelected
+              ? AppTheme.black
+              : AppTheme.lightGray.withValues(alpha: 0.5),
+          width: isSelected ? 2 : 1.2,
+        ),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: AppTheme.black.withValues(alpha: 0.12),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : null,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Liquid stack
+            Column(
+              children: [
+                Expanded(
+                  flex: (_game.capacity - bottle.length).clamp(0, _game.capacity),
+                  child: Container(color: AppTheme.white),
+                ),
+                ...bottle.reversed.map(
+                  (c) => Expanded(
+                    flex: 1,
+                    child: _liquidSegment(_palette[c]),
                   ),
-                  ...bottle.reversed.map(
-                    (c) => Expanded(
-                      flex: 1,
-                      child: Container(color: _palette[c]),
+                ),
+              ],
+            ),
+            // Glass highlight
+            Positioned(
+              left: 3,
+              top: 4,
+              bottom: 4,
+              width: 3,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.55),
+                        Colors.white.withValues(alpha: 0.15),
+                        Colors.white.withValues(alpha: 0.0),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ),
+            // Subtle inner shadow on right
+            Positioned(
+              right: 0,
+              top: 0,
+              bottom: 0,
+              width: 4,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerRight,
+                      end: Alignment.centerLeft,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.08),
+                        Colors.black.withValues(alpha: 0.0),
+                      ],
                     ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _liquidSegment(Color color) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color.lerp(color, Colors.white, 0.18)!,
+            color,
+            Color.lerp(color, Colors.black, 0.12)!,
+          ],
+          stops: const [0.0, 0.5, 1.0],
         ),
       ),
     );
