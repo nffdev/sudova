@@ -4,6 +4,8 @@ import '../../widgets/game_card.dart';
 import '../sudoku/sudoku_screen.dart';
 import '../mental_calc/mental_calc_screen.dart';
 import '../crossmath/crossmath_screen.dart';
+import '../magic_sort/magic_sort_screen.dart';
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -76,6 +78,13 @@ class HomeScreen extends StatelessWidget {
                 subtitle: 'Equation crossword puzzles',
                 icon: Icons.calculate_outlined,
                 onTap: () => _navigateTo(context, const CrossMathScreen()),
+              ),
+              const SizedBox(height: 12),
+              GameCard(
+                title: 'Magic Sort',
+                subtitle: 'Sort the colors by pouring',
+                icon: Icons.science_outlined,
+                onTap: () => _navigateTo(context, const MagicSortScreen()),
               ),
               const Spacer(),
               Center(
