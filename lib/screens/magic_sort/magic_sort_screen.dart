@@ -305,7 +305,12 @@ class _MagicSortScreenState extends State<MagicSortScreen>
 
     final raise = isSelected ? -10.0 : 0.0;
     final extraRaise = isSource ? -22.0 * tilt : 0.0;
-    final rotation = isSource ? -0.45 * tilt : 0.0;
+    final targetIsRight = isSource && (_pourTo ?? 0) > _pourFrom!;
+    final rotation =
+        isSource ? (targetIsRight ? 0.45 : -0.45) * tilt : 0.0;
+    final pivot = isSource
+        ? (targetIsRight ? Alignment.bottomLeft : Alignment.bottomRight)
+        : Alignment.bottomCenter;
 
     return GestureDetector(
       onTap: () => _onBottleTap(index),
@@ -313,7 +318,7 @@ class _MagicSortScreenState extends State<MagicSortScreen>
         offset: Offset(0, raise + extraRaise),
         child: Transform.rotate(
           angle: rotation,
-          alignment: Alignment.bottomRight,
+          alignment: pivot,
           child: AspectRatio(
             aspectRatio: 0.35,
             child: _bottleBody(bottle, isSelected),
@@ -358,7 +363,7 @@ class _MagicSortScreenState extends State<MagicSortScreen>
                 ...bottle.reversed.map(
                   (c) => Expanded(
                     flex: 1,
-                    child: _liquidSegment(_palette[c]),
+                    child: Container(color: _palette[c]),
                   ),
                 ),
               ],
@@ -413,20 +418,4 @@ class _MagicSortScreenState extends State<MagicSortScreen>
     );
   }
 
-  Widget _liquidSegment(Color color) {
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color.lerp(color, Colors.white, 0.18)!,
-            color,
-            Color.lerp(color, Colors.black, 0.12)!,
-          ],
-          stops: const [0.0, 0.5, 1.0],
-        ),
-      ),
-    );
-  }
 }
