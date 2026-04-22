@@ -275,22 +275,54 @@ class _MagicSortScreenState extends State<MagicSortScreen>
         : count <= 8
             ? 4
             : (count / 2).ceil();
+    final rows = (count / cols).ceil();
+
+    const hSpacing = 14.0;
+    const vSpacing = 16.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
+        final rawWidth =
+            (constraints.maxWidth - (cols - 1) * hSpacing) / cols - 2;
+        final bottleWidth = rawWidth.clamp(40.0, 64.0);
+        final bottleHeight = bottleWidth / 0.35;
+
+        final positioned = <Widget>[];
+        for (int i = 0; i < count; i++) {
+          final row = i ~/ cols;
+          final col = i % cols;
+          final itemsInRow =
+              (row == rows - 1) ? (count - row * cols) : cols;
+          final rowWidth =
+              itemsInRow * bottleWidth + (itemsInRow - 1) * hSpacing;
+          final rowLeft = (constraints.maxWidth - rowWidth) / 2;
+          final x = rowLeft + col * (bottleWidth + hSpacing);
+          final y = row * (bottleHeight + vSpacing);
+          positioned.add(Positioned(
+            key: ValueKey('bottle_$i'),
+            left: x,
+            top: y,
+            width: bottleWidth,
+            height: bottleHeight,
+            child: _buildBottle(i),
+          ));
+        }
+
+        if (_isPouring && _pourFrom != null) {
+          final src = positioned.removeAt(_pourFrom!);
+          positioned.add(src);
+        }
+
+        final totalHeight = rows * bottleHeight + (rows - 1) * vSpacing;
+
         return Center(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 14,
-            runSpacing: 16,
-            children: List.generate(count, (i) {
-              final width =
-                  (constraints.maxWidth - (cols - 1) * 14) / cols - 2;
-              return SizedBox(
-                width: width.clamp(40.0, 64.0),
-                child: _buildBottle(i),
-              );
-            }),
+          child: SizedBox(
+            width: constraints.maxWidth,
+            height: totalHeight,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: positioned,
+            ),
           ),
         );
       },
