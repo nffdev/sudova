@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../core/app_info.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/game_card.dart';
 import '../sudoku/sudoku_screen.dart';
@@ -91,7 +92,7 @@ class HomeScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 24),
                   child: Text(
-                    'v1.0.0',
+                    AppInfo.version,
                     style: TextStyle(
                       fontSize: 12,
                       color: AppTheme.lightGray.withValues(alpha: 0.6),
