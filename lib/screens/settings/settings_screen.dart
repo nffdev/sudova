@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/app_info.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/haptic.dart';
 
@@ -83,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _buildInfoTile(
                 icon: Icons.info_outline_rounded,
                 title: 'Version',
-                trailing: 'v1.0.0',
+                trailing: AppInfo.version,
               ),
               const SizedBox(height: 12),
               GestureDetector(
