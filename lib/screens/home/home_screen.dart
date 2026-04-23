@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../core/app_info.dart';
 import '../../core/theme/app_theme.dart';
 import '../../widgets/game_card.dart';
 import '../sudoku/sudoku_screen.dart';
@@ -86,19 +85,6 @@ class HomeScreen extends StatelessWidget {
                 subtitle: 'Sort the colors by pouring',
                 icon: Icons.science_outlined,
                 onTap: () => _navigateTo(context, const MagicSortScreen()),
-              ),
-              const Spacer(),
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  child: Text(
-                    AppInfo.version,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: AppTheme.lightGray.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
