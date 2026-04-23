@@ -24,30 +24,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Haptic.light();
-                      Navigator.pop(context);
-                    },
-                    child: const Icon(
-                      Icons.arrow_back_ios_rounded,
-                      size: 20,
-                      color: AppTheme.black,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Settings',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.black,
-                      letterSpacing: -1.0,
-                    ),
-                  ),
-                ],
+              const Text(
+                'Settings',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.black,
+                  letterSpacing: -1.0,
+                ),
               ),
               const SizedBox(height: 40),
               const Text(
