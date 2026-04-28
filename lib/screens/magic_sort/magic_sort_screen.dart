@@ -287,7 +287,7 @@ class _MagicSortScreenState extends State<MagicSortScreen>
         final bottleWidth = rawWidth.clamp(40.0, 64.0);
         final bottleHeight = bottleWidth / 0.35;
 
-        final positioned = <Widget>[];
+        final positions = <int, Offset>{};
         for (int i = 0; i < count; i++) {
           final row = i ~/ cols;
           final col = i % cols;
@@ -298,13 +298,33 @@ class _MagicSortScreenState extends State<MagicSortScreen>
           final rowLeft = (constraints.maxWidth - rowWidth) / 2;
           final x = rowLeft + col * (bottleWidth + hSpacing);
           final y = row * (bottleHeight + vSpacing);
+          positions[i] = Offset(x, y);
+        }
+
+        Offset sourceMove = Offset.zero;
+        if (_isPouring && _pourFrom != null && _pourTo != null) {
+          final src = positions[_pourFrom!]!;
+          final tgt = positions[_pourTo!]!;
+          final targetIsRight = _pourTo! > _pourFrom!;
+          final endX =
+              targetIsRight ? tgt.dx - bottleWidth : tgt.dx + bottleWidth;
+          sourceMove = Offset(endX - src.dx, tgt.dy - src.dy);
+        }
+
+        final positioned = <Widget>[];
+        for (int i = 0; i < count; i++) {
+          final p = positions[i]!;
+          final isSrc = _isPouring && _pourFrom == i;
           positioned.add(Positioned(
             key: ValueKey('bottle_$i'),
-            left: x,
-            top: y,
+            left: p.dx,
+            top: p.dy,
             width: bottleWidth,
             height: bottleHeight,
-            child: _buildBottle(i),
+            child: _buildBottle(
+              i,
+              moveOffset: isSrc ? sourceMove : Offset.zero,
+            ),
           ));
         }
 
@@ -329,7 +349,7 @@ class _MagicSortScreenState extends State<MagicSortScreen>
     );
   }
 
-  Widget _buildBottle(int index) {
+  Widget _buildBottle(int index, {Offset moveOffset = Offset.zero}) {
     final bottle = _visibleBottle(index);
     final isSelected = _selectedBottle == index;
     final isSource = _pourFrom == index && _isPouring;
@@ -343,11 +363,12 @@ class _MagicSortScreenState extends State<MagicSortScreen>
     final pivot = isSource
         ? (targetIsRight ? Alignment.bottomLeft : Alignment.bottomRight)
         : Alignment.bottomCenter;
+    final move = isSource ? moveOffset * tilt : Offset.zero;
 
     return GestureDetector(
       onTap: () => _onBottleTap(index),
       child: Transform.translate(
-        offset: Offset(0, raise + extraRaise),
+        offset: Offset(move.dx, move.dy + raise + extraRaise),
         child: Transform.rotate(
           angle: rotation,
           alignment: pivot,
