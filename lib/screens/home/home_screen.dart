@@ -5,6 +5,7 @@ import '../sudoku/sudoku_screen.dart';
 import '../mental_calc/mental_calc_screen.dart';
 import '../crossmath/crossmath_screen.dart';
 import '../magic_sort/magic_sort_screen.dart';
+import '../maze/maze_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -85,6 +86,13 @@ class HomeScreen extends StatelessWidget {
                 subtitle: 'Sort the colors by pouring',
                 icon: Icons.science_outlined,
                 onTap: () => _navigateTo(context, const MagicSortScreen()),
+              ),
+              const SizedBox(height: 12),
+              GameCard(
+                title: 'Maze',
+                subtitle: 'Swipe to find the exit',
+                icon: Icons.explore_outlined,
+                onTap: () => _navigateTo(context, const MazeScreen()),
               ),
             ],
           ),
