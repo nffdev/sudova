@@ -14,6 +14,7 @@ class MazeModel {
   final List<List<MazeCell>> grid;
   int playerCol = 0;
   int playerRow = 0;
+  int version = 0;
 
   MazeModel._({
     required this.cols,
@@ -183,5 +184,6 @@ class MazeModel {
     if (!canMove(dc, dr)) return;
     playerCol += dc;
     playerRow += dr;
+    version++;
   }
 }

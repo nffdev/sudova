@@ -152,8 +152,7 @@ class _MazeScreenState extends State<MazeScreen> {
                             painter: _MazePainter(
                               maze: _maze,
                               cellSize: cellSize,
-                              playerCol: _maze.playerCol,
-                              playerRow: _maze.playerRow,
+                              version: _maze.version,
                             ),
                           ),
                         ),
@@ -197,14 +196,12 @@ class _MazeScreenState extends State<MazeScreen> {
 class _MazePainter extends CustomPainter {
   final MazeModel maze;
   final double cellSize;
-  final int playerCol;
-  final int playerRow;
+  final int version;
 
   _MazePainter({
     required this.maze,
     required this.cellSize,
-    required this.playerCol,
-    required this.playerRow,
+    required this.version,
   });
 
   @override
@@ -270,8 +267,7 @@ class _MazePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _MazePainter oldDelegate) =>
-      oldDelegate.maze != maze ||
+      !identical(oldDelegate.maze, maze) ||
       oldDelegate.cellSize != cellSize ||
-      oldDelegate.playerCol != playerCol ||
-      oldDelegate.playerRow != playerRow;
+      oldDelegate.version != version;
 }
