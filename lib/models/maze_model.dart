@@ -41,43 +41,113 @@ class MazeModel {
       size,
       (_) => List.generate(size, (_) => MazeCell()),
     );
-    _carve(grid, size, size);
+    final rng = Random();
+    if (rng.nextBool()) {
+      _carveBacktracker(grid, size, size, rng);
+    } else {
+      _carvePrim(grid, size, size, rng);
+    }
+    _addLoops(grid, size, size, rng);
     return MazeModel._(cols: size, rows: size, grid: grid);
   }
 
-  static void _carve(List<List<MazeCell>> grid, int cols, int rows) {
+  static List<List<int>> _neighborsOf(int cc, int cr, int cols, int rows) {
+    final list = <List<int>>[];
+    if (cr > 0) list.add([cc, cr - 1, 0, 2]);
+    if (cc < cols - 1) list.add([cc + 1, cr, 1, 3]);
+    if (cr < rows - 1) list.add([cc, cr + 1, 2, 0]);
+    if (cc > 0) list.add([cc - 1, cr, 3, 1]);
+    return list;
+  }
+
+  static void _carveBacktracker(
+    List<List<MazeCell>> grid,
+    int cols,
+    int rows,
+    Random rng,
+  ) {
     final visited = List.generate(rows, (_) => List.filled(cols, false));
     final stack = <List<int>>[];
-    final rng = Random();
-    visited[0][0] = true;
-    stack.add([0, 0]);
+    final sc = rng.nextInt(cols);
+    final sr = rng.nextInt(rows);
+    visited[sr][sc] = true;
+    stack.add([sc, sr]);
 
     while (stack.isNotEmpty) {
       final cur = stack.last;
       final cc = cur[0];
       final cr = cur[1];
-      final neighbors = <List<int>>[];
-      // [nc, nr, wallFromCurrent (0=top,1=right,2=bottom,3=left), wallFromNeighbor]
-      if (cr > 0 && !visited[cr - 1][cc]) neighbors.add([cc, cr - 1, 0, 2]);
-      if (cc < cols - 1 && !visited[cr][cc + 1]) {
-        neighbors.add([cc + 1, cr, 1, 3]);
-      }
-      if (cr < rows - 1 && !visited[cr + 1][cc]) {
-        neighbors.add([cc, cr + 1, 2, 0]);
-      }
-      if (cc > 0 && !visited[cr][cc - 1]) neighbors.add([cc - 1, cr, 3, 1]);
+      final neighbors = _neighborsOf(cc, cr, cols, rows)
+          .where((n) => !visited[n[1]][n[0]])
+          .toList();
 
       if (neighbors.isEmpty) {
         stack.removeLast();
         continue;
       }
       final n = neighbors[rng.nextInt(neighbors.length)];
-      final nc = n[0];
-      final nr = n[1];
       _knock(grid[cr][cc], n[2]);
-      _knock(grid[nr][nc], n[3]);
-      visited[nr][nc] = true;
-      stack.add([nc, nr]);
+      _knock(grid[n[1]][n[0]], n[3]);
+      visited[n[1]][n[0]] = true;
+      stack.add([n[0], n[1]]);
+    }
+  }
+
+  static void _carvePrim(
+    List<List<MazeCell>> grid,
+    int cols,
+    int rows,
+    Random rng,
+  ) {
+    final inMaze = List.generate(rows, (_) => List.filled(cols, false));
+    final sc = rng.nextInt(cols);
+    final sr = rng.nextInt(rows);
+    inMaze[sr][sc] = true;
+    // frontier walls: [cc, cr, wallSide, nc, nr, neighborSide]
+    final frontier = <List<int>>[];
+    for (final n in _neighborsOf(sc, sr, cols, rows)) {
+      frontier.add([sc, sr, n[2], n[0], n[1], n[3]]);
+    }
+
+    while (frontier.isNotEmpty) {
+      final idx = rng.nextInt(frontier.length);
+      final w = frontier.removeAt(idx);
+      final cc = w[0], cr = w[1], nc = w[3], nr = w[4];
+      if (inMaze[nr][nc]) continue;
+      _knock(grid[cr][cc], w[2]);
+      _knock(grid[nr][nc], w[5]);
+      inMaze[nr][nc] = true;
+      for (final n in _neighborsOf(nc, nr, cols, rows)) {
+        if (!inMaze[n[1]][n[0]]) {
+          frontier.add([nc, nr, n[2], n[0], n[1], n[3]]);
+        }
+      }
+    }
+  }
+
+  static void _addLoops(
+    List<List<MazeCell>> grid,
+    int cols,
+    int rows,
+    Random rng,
+  ) {
+    final extra = ((cols * rows) * 0.04).round();
+    for (int i = 0; i < extra; i++) {
+      final cc = rng.nextInt(cols);
+      final cr = rng.nextInt(rows);
+      final candidates = <List<int>>[];
+      if (cr > 0 && grid[cr][cc].top) candidates.add([0, cc, cr - 1, 2]);
+      if (cc < cols - 1 && grid[cr][cc].right) {
+        candidates.add([1, cc + 1, cr, 3]);
+      }
+      if (cr < rows - 1 && grid[cr][cc].bottom) {
+        candidates.add([2, cc, cr + 1, 0]);
+      }
+      if (cc > 0 && grid[cr][cc].left) candidates.add([3, cc - 1, cr, 1]);
+      if (candidates.isEmpty) continue;
+      final pick = candidates[rng.nextInt(candidates.length)];
+      _knock(grid[cr][cc], pick[0]);
+      _knock(grid[pick[2]][pick[1]], pick[3]);
     }
   }
 
