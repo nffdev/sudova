@@ -16,7 +16,6 @@ class MazeScreen extends StatefulWidget {
 class _MazeScreenState extends State<MazeScreen> {
   Difficulty _difficulty = Difficulty.easy;
   late MazeModel _maze;
-  bool _isComplete = false;
   int _moves = 0;
   Offset _dragAccum = Offset.zero;
   final _timerKey = GlobalKey<GameTimerState>();
@@ -31,7 +30,6 @@ class _MazeScreenState extends State<MazeScreen> {
     setState(() {
       if (difficulty != null) _difficulty = difficulty;
       _maze = MazeModel.generate(_difficulty);
-      _isComplete = false;
       _moves = 0;
       _dragAccum = Offset.zero;
     });
@@ -39,7 +37,7 @@ class _MazeScreenState extends State<MazeScreen> {
   }
 
   void _onPanUpdate(DragUpdateDetails details, double cellSize) {
-    if (_isComplete) return;
+    if (_maze.isComplete) return;
     _dragAccum += details.delta;
     final threshold = cellSize * 0.5;
 
@@ -67,7 +65,6 @@ class _MazeScreenState extends State<MazeScreen> {
         if (dr != 0 && newDy.sign != oldDy.sign) newDy = 0;
         _dragAccum = Offset(newDx, newDy);
         if (_maze.isComplete) {
-          setState(() => _isComplete = true);
           Haptic.medium();
           _dragAccum = Offset.zero;
           return;
@@ -128,7 +125,7 @@ class _MazeScreenState extends State<MazeScreen> {
                       color: AppTheme.mediumGray,
                     ),
                   ),
-                  GameTimer(key: _timerKey, isRunning: !_isComplete),
+                  GameTimer(key: _timerKey, isRunning: !_maze.isComplete),
                 ],
               ),
             ),
@@ -166,7 +163,7 @@ class _MazeScreenState extends State<MazeScreen> {
                 ),
               ),
             ),
-            if (_isComplete)
+            if (_maze.isComplete)
               Padding(
                 padding: const EdgeInsets.only(bottom: 24, top: 8),
                 child: Container(
