@@ -198,6 +198,15 @@ class _MazePainter extends CustomPainter {
   final double cellSize;
   final int version;
 
+  static final Paint _wallPaint = Paint()
+    ..color = AppTheme.black
+    ..strokeWidth = 2
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+  static final Paint _goalPaint = Paint()
+    ..color = AppTheme.success.withValues(alpha: 0.25);
+  static final Paint _playerPaint = Paint()..color = AppTheme.black;
+
   _MazePainter({
     required this.maze,
     required this.cellSize,
@@ -206,13 +215,6 @@ class _MazePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final wallPaint = Paint()
-      ..color = AppTheme.black
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final goalPaint = Paint()..color = AppTheme.success.withValues(alpha: 0.25);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
@@ -223,7 +225,7 @@ class _MazePainter extends CustomPainter {
         ),
         const Radius.circular(4),
       ),
-      goalPaint,
+      _goalPaint,
     );
 
     for (int r = 0; r < maze.rows; r++) {
@@ -232,36 +234,35 @@ class _MazePainter extends CustomPainter {
         final x = c * cellSize;
         final y = r * cellSize;
         if (cell.top) {
-          canvas.drawLine(Offset(x, y), Offset(x + cellSize, y), wallPaint);
+          canvas.drawLine(Offset(x, y), Offset(x + cellSize, y), _wallPaint);
         }
         if (cell.left) {
-          canvas.drawLine(Offset(x, y), Offset(x, y + cellSize), wallPaint);
+          canvas.drawLine(Offset(x, y), Offset(x, y + cellSize), _wallPaint);
         }
         if (c == maze.cols - 1 && cell.right) {
           canvas.drawLine(
             Offset(x + cellSize, y),
             Offset(x + cellSize, y + cellSize),
-            wallPaint,
+            _wallPaint,
           );
         }
         if (r == maze.rows - 1 && cell.bottom) {
           canvas.drawLine(
             Offset(x, y + cellSize),
             Offset(x + cellSize, y + cellSize),
-            wallPaint,
+            _wallPaint,
           );
         }
       }
     }
 
-    final playerPaint = Paint()..color = AppTheme.black;
     canvas.drawCircle(
       Offset(
         maze.playerCol * cellSize + cellSize / 2,
         maze.playerRow * cellSize + cellSize / 2,
       ),
       cellSize * 0.3,
-      playerPaint,
+      _playerPaint,
     );
   }
 
