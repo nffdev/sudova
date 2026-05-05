@@ -112,7 +112,10 @@ class MazeModel {
 
     while (frontier.isNotEmpty) {
       final idx = rng.nextInt(frontier.length);
-      final w = frontier.removeAt(idx);
+      final last = frontier.length - 1;
+      final w = frontier[idx];
+      if (idx != last) frontier[idx] = frontier[last];
+      frontier.removeLast();
       final cc = w[0], cr = w[1], nc = w[3], nr = w[4];
       if (inMaze[nr][nc]) continue;
       _knock(grid[cr][cc], w[2]);
