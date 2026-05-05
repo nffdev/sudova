@@ -14,12 +14,9 @@ class MazeScreen extends StatefulWidget {
 }
 
 class _MazeScreenState extends State<MazeScreen> {
-  static const double _dragThresholdRatio = 0.5;
-
   Difficulty _difficulty = Difficulty.easy;
   late MazeModel _maze;
   int _moves = 0;
-  Offset _dragAccum = Offset.zero;
   final _timerKey = GlobalKey<GameTimerState>();
 
   @override
@@ -33,59 +30,17 @@ class _MazeScreenState extends State<MazeScreen> {
       if (difficulty != null) _difficulty = difficulty;
       _maze = MazeModel.generate(_difficulty);
       _moves = 0;
-      _dragAccum = Offset.zero;
     });
     _timerKey.currentState?.reset();
   }
 
-  void _onPanUpdate(DragUpdateDetails details, double cellSize) {
-    if (_maze.isComplete) return;
-    _dragAccum += details.delta;
-    final threshold = cellSize * _dragThresholdRatio;
-
-    while (_dragAccum.dx.abs() >= threshold ||
-        _dragAccum.dy.abs() >= threshold) {
-      int dc = 0;
-      int dr = 0;
-      if (_dragAccum.dx.abs() >= _dragAccum.dy.abs()) {
-        dc = _dragAccum.dx > 0 ? 1 : -1;
-      } else {
-        dr = _dragAccum.dy > 0 ? 1 : -1;
-      }
-
-      if (_maze.canMove(dc, dr)) {
-        setState(() {
-          _maze.move(dc, dr);
-          _moves++;
-        });
-        Haptic.selection();
-        final oldDx = _dragAccum.dx;
-        final oldDy = _dragAccum.dy;
-        double newDx = oldDx - dc * cellSize;
-        double newDy = oldDy - dr * cellSize;
-        if (dc != 0 && newDx.sign != oldDx.sign) newDx = 0;
-        if (dr != 0 && newDy.sign != oldDy.sign) newDy = 0;
-        _dragAccum = Offset(newDx, newDy);
-        if (_maze.isComplete) {
-          Haptic.medium();
-          _dragAccum = Offset.zero;
-          return;
-        }
-      } else {
-        if (dc != 0) {
-          _dragAccum = Offset(
-            _dragAccum.dx.sign * (threshold - 1),
-            _dragAccum.dy,
-          );
-        } else {
-          _dragAccum = Offset(
-            _dragAccum.dx,
-            _dragAccum.dy.sign * (threshold - 1),
-          );
-        }
-        break;
-      }
-    }
+  void _handleMove(int dc, int dr) {
+    setState(() {
+      _maze.move(dc, dr);
+      _moves++;
+    });
+    Haptic.selection();
+    if (_maze.isComplete) Haptic.medium();
   }
 
   @override
@@ -135,33 +90,7 @@ class _MazeScreenState extends State<MazeScreen> {
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final size = constraints.maxWidth < constraints.maxHeight
-                        ? constraints.maxWidth
-                        : constraints.maxHeight;
-                    final cellSize = size / _maze.cols;
-                    return Center(
-                      child: SizedBox(
-                        width: size,
-                        height: size,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onPanUpdate: (d) => _onPanUpdate(d, cellSize),
-                          onPanEnd: (_) => _dragAccum = Offset.zero,
-                          onPanCancel: () => _dragAccum = Offset.zero,
-                          child: CustomPaint(
-                            painter: _MazePainter(
-                              maze: _maze,
-                              cellSize: cellSize,
-                              version: _maze.version,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
+                child: _MazeBoard(maze: _maze, onMove: _handleMove),
               ),
             ),
             if (_maze.isComplete)
@@ -191,6 +120,99 @@ class _MazeScreenState extends State<MazeScreen> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MazeBoard extends StatefulWidget {
+  final MazeModel maze;
+  final void Function(int dc, int dr) onMove;
+
+  const _MazeBoard({required this.maze, required this.onMove});
+
+  @override
+  State<_MazeBoard> createState() => _MazeBoardState();
+}
+
+class _MazeBoardState extends State<_MazeBoard> {
+  static const double _dragThresholdRatio = 0.5;
+
+  Offset _dragAccum = Offset.zero;
+
+  void _onPanUpdate(DragUpdateDetails details, double cellSize) {
+    final maze = widget.maze;
+    if (maze.isComplete) return;
+    _dragAccum += details.delta;
+    final threshold = cellSize * _dragThresholdRatio;
+
+    while (_dragAccum.dx.abs() >= threshold ||
+        _dragAccum.dy.abs() >= threshold) {
+      int dc = 0;
+      int dr = 0;
+      if (_dragAccum.dx.abs() >= _dragAccum.dy.abs()) {
+        dc = _dragAccum.dx > 0 ? 1 : -1;
+      } else {
+        dr = _dragAccum.dy > 0 ? 1 : -1;
+      }
+
+      if (maze.canMove(dc, dr)) {
+        widget.onMove(dc, dr);
+        final oldDx = _dragAccum.dx;
+        final oldDy = _dragAccum.dy;
+        double newDx = oldDx - dc * cellSize;
+        double newDy = oldDy - dr * cellSize;
+        if (dc != 0 && newDx.sign != oldDx.sign) newDx = 0;
+        if (dr != 0 && newDy.sign != oldDy.sign) newDy = 0;
+        _dragAccum = Offset(newDx, newDy);
+        if (maze.isComplete) {
+          _dragAccum = Offset.zero;
+          return;
+        }
+      } else {
+        if (dc != 0) {
+          _dragAccum = Offset(
+            _dragAccum.dx.sign * (threshold - 1),
+            _dragAccum.dy,
+          );
+        } else {
+          _dragAccum = Offset(
+            _dragAccum.dx,
+            _dragAccum.dy.sign * (threshold - 1),
+          );
+        }
+        break;
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.maxWidth < constraints.maxHeight
+            ? constraints.maxWidth
+            : constraints.maxHeight;
+        final cellSize = size / widget.maze.cols;
+        return Center(
+          child: SizedBox(
+            width: size,
+            height: size,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onPanUpdate: (d) => _onPanUpdate(d, cellSize),
+              onPanEnd: (_) => _dragAccum = Offset.zero,
+              onPanCancel: () => _dragAccum = Offset.zero,
+              child: CustomPaint(
+                painter: _MazePainter(
+                  maze: widget.maze,
+                  cellSize: cellSize,
+                  version: widget.maze.version,
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,6 +1,9 @@
 import 'dart:math';
 import 'difficulty.dart';
 
+typedef _Neighbor = ({int nc, int nr, int side, int opposite});
+typedef _FrontierWall = ({int cc, int cr, int side, int nc, int nr, int opposite});
+
 class MazeCell {
   static const int top = 1 << 0;
   static const int right = 1 << 1;
@@ -52,16 +55,20 @@ class MazeModel {
     return MazeModel._(cols: size, rows: size, grid: grid);
   }
 
-  static List<List<int>> _neighborsOf(int cc, int cr, int cols, int rows) {
-    final list = <List<int>>[];
-    if (cr > 0) list.add([cc, cr - 1, MazeCell.top, MazeCell.bottom]);
+  static List<_Neighbor> _neighborsOf(int cc, int cr, int cols, int rows) {
+    final list = <_Neighbor>[];
+    if (cr > 0) {
+      list.add((nc: cc, nr: cr - 1, side: MazeCell.top, opposite: MazeCell.bottom));
+    }
     if (cc < cols - 1) {
-      list.add([cc + 1, cr, MazeCell.right, MazeCell.left]);
+      list.add((nc: cc + 1, nr: cr, side: MazeCell.right, opposite: MazeCell.left));
     }
     if (cr < rows - 1) {
-      list.add([cc, cr + 1, MazeCell.bottom, MazeCell.top]);
+      list.add((nc: cc, nr: cr + 1, side: MazeCell.bottom, opposite: MazeCell.top));
     }
-    if (cc > 0) list.add([cc - 1, cr, MazeCell.left, MazeCell.right]);
+    if (cc > 0) {
+      list.add((nc: cc - 1, nr: cr, side: MazeCell.left, opposite: MazeCell.right));
+    }
     return list;
   }
 
@@ -72,18 +79,16 @@ class MazeModel {
     Random rng,
   ) {
     final visited = List.generate(rows, (_) => List.filled(cols, false));
-    final stack = <List<int>>[];
+    final stack = <(int, int)>[];
     final sc = rng.nextInt(cols);
     final sr = rng.nextInt(rows);
     visited[sr][sc] = true;
-    stack.add([sc, sr]);
+    stack.add((sc, sr));
 
     while (stack.isNotEmpty) {
-      final cur = stack.last;
-      final cc = cur[0];
-      final cr = cur[1];
+      final (cc, cr) = stack.last;
       final neighbors = _neighborsOf(cc, cr, cols, rows)
-          .where((n) => !visited[n[1]][n[0]])
+          .where((n) => !visited[n.nr][n.nc])
           .toList();
 
       if (neighbors.isEmpty) {
@@ -91,10 +96,10 @@ class MazeModel {
         continue;
       }
       final n = neighbors[rng.nextInt(neighbors.length)];
-      grid[cr][cc].knock(n[2]);
-      grid[n[1]][n[0]].knock(n[3]);
-      visited[n[1]][n[0]] = true;
-      stack.add([n[0], n[1]]);
+      grid[cr][cc].knock(n.side);
+      grid[n.nr][n.nc].knock(n.opposite);
+      visited[n.nr][n.nc] = true;
+      stack.add((n.nc, n.nr));
     }
   }
 
@@ -108,10 +113,9 @@ class MazeModel {
     final sc = rng.nextInt(cols);
     final sr = rng.nextInt(rows);
     inMaze[sr][sc] = true;
-    // frontier walls: [cc, cr, wallSide, nc, nr, neighborSide]
-    final frontier = <List<int>>[];
+    final frontier = <_FrontierWall>[];
     for (final n in _neighborsOf(sc, sr, cols, rows)) {
-      frontier.add([sc, sr, n[2], n[0], n[1], n[3]]);
+      frontier.add((cc: sc, cr: sr, side: n.side, nc: n.nc, nr: n.nr, opposite: n.opposite));
     }
 
     while (frontier.isNotEmpty) {
@@ -120,14 +124,13 @@ class MazeModel {
       final w = frontier[idx];
       if (idx != last) frontier[idx] = frontier[last];
       frontier.removeLast();
-      final cc = w[0], cr = w[1], nc = w[3], nr = w[4];
-      if (inMaze[nr][nc]) continue;
-      grid[cr][cc].knock(w[2]);
-      grid[nr][nc].knock(w[5]);
-      inMaze[nr][nc] = true;
-      for (final n in _neighborsOf(nc, nr, cols, rows)) {
-        if (!inMaze[n[1]][n[0]]) {
-          frontier.add([nc, nr, n[2], n[0], n[1], n[3]]);
+      if (inMaze[w.nr][w.nc]) continue;
+      grid[w.cr][w.cc].knock(w.side);
+      grid[w.nr][w.nc].knock(w.opposite);
+      inMaze[w.nr][w.nc] = true;
+      for (final n in _neighborsOf(w.nc, w.nr, cols, rows)) {
+        if (!inMaze[n.nr][n.nc]) {
+          frontier.add((cc: w.nc, cr: w.nr, side: n.side, nc: n.nc, nr: n.nr, opposite: n.opposite));
         }
       }
     }
@@ -144,23 +147,13 @@ class MazeModel {
       final cc = rng.nextInt(cols);
       final cr = rng.nextInt(rows);
       final cell = grid[cr][cc];
-      final candidates = <List<int>>[];
-      if (cr > 0 && cell.has(MazeCell.top)) {
-        candidates.add([MazeCell.top, cc, cr - 1, MazeCell.bottom]);
-      }
-      if (cc < cols - 1 && cell.has(MazeCell.right)) {
-        candidates.add([MazeCell.right, cc + 1, cr, MazeCell.left]);
-      }
-      if (cr < rows - 1 && cell.has(MazeCell.bottom)) {
-        candidates.add([MazeCell.bottom, cc, cr + 1, MazeCell.top]);
-      }
-      if (cc > 0 && cell.has(MazeCell.left)) {
-        candidates.add([MazeCell.left, cc - 1, cr, MazeCell.right]);
-      }
+      final candidates = _neighborsOf(cc, cr, cols, rows)
+          .where((n) => cell.has(n.side))
+          .toList();
       if (candidates.isEmpty) continue;
       final pick = candidates[rng.nextInt(candidates.length)];
-      cell.knock(pick[0]);
-      grid[pick[2]][pick[1]].knock(pick[3]);
+      cell.knock(pick.side);
+      grid[pick.nr][pick.nc].knock(pick.opposite);
     }
   }
 
