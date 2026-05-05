@@ -2,10 +2,16 @@ import 'dart:math';
 import 'difficulty.dart';
 
 class MazeCell {
-  bool top = true;
-  bool right = true;
-  bool bottom = true;
-  bool left = true;
+  static const int top = 1 << 0;
+  static const int right = 1 << 1;
+  static const int bottom = 1 << 2;
+  static const int left = 1 << 3;
+  static const int all = top | right | bottom | left;
+
+  int walls = all;
+
+  bool has(int side) => (walls & side) != 0;
+  void knock(int side) => walls &= ~side;
 }
 
 class MazeModel {
@@ -48,10 +54,14 @@ class MazeModel {
 
   static List<List<int>> _neighborsOf(int cc, int cr, int cols, int rows) {
     final list = <List<int>>[];
-    if (cr > 0) list.add([cc, cr - 1, 0, 2]);
-    if (cc < cols - 1) list.add([cc + 1, cr, 1, 3]);
-    if (cr < rows - 1) list.add([cc, cr + 1, 2, 0]);
-    if (cc > 0) list.add([cc - 1, cr, 3, 1]);
+    if (cr > 0) list.add([cc, cr - 1, MazeCell.top, MazeCell.bottom]);
+    if (cc < cols - 1) {
+      list.add([cc + 1, cr, MazeCell.right, MazeCell.left]);
+    }
+    if (cr < rows - 1) {
+      list.add([cc, cr + 1, MazeCell.bottom, MazeCell.top]);
+    }
+    if (cc > 0) list.add([cc - 1, cr, MazeCell.left, MazeCell.right]);
     return list;
   }
 
@@ -81,8 +91,8 @@ class MazeModel {
         continue;
       }
       final n = neighbors[rng.nextInt(neighbors.length)];
-      _knock(grid[cr][cc], n[2]);
-      _knock(grid[n[1]][n[0]], n[3]);
+      grid[cr][cc].knock(n[2]);
+      grid[n[1]][n[0]].knock(n[3]);
       visited[n[1]][n[0]] = true;
       stack.add([n[0], n[1]]);
     }
@@ -112,8 +122,8 @@ class MazeModel {
       frontier.removeLast();
       final cc = w[0], cr = w[1], nc = w[3], nr = w[4];
       if (inMaze[nr][nc]) continue;
-      _knock(grid[cr][cc], w[2]);
-      _knock(grid[nr][nc], w[5]);
+      grid[cr][cc].knock(w[2]);
+      grid[nr][nc].knock(w[5]);
       inMaze[nr][nc] = true;
       for (final n in _neighborsOf(nc, nr, cols, rows)) {
         if (!inMaze[n[1]][n[0]]) {
@@ -133,36 +143,24 @@ class MazeModel {
     for (int i = 0; i < extra; i++) {
       final cc = rng.nextInt(cols);
       final cr = rng.nextInt(rows);
+      final cell = grid[cr][cc];
       final candidates = <List<int>>[];
-      if (cr > 0 && grid[cr][cc].top) candidates.add([0, cc, cr - 1, 2]);
-      if (cc < cols - 1 && grid[cr][cc].right) {
-        candidates.add([1, cc + 1, cr, 3]);
+      if (cr > 0 && cell.has(MazeCell.top)) {
+        candidates.add([MazeCell.top, cc, cr - 1, MazeCell.bottom]);
       }
-      if (cr < rows - 1 && grid[cr][cc].bottom) {
-        candidates.add([2, cc, cr + 1, 0]);
+      if (cc < cols - 1 && cell.has(MazeCell.right)) {
+        candidates.add([MazeCell.right, cc + 1, cr, MazeCell.left]);
       }
-      if (cc > 0 && grid[cr][cc].left) candidates.add([3, cc - 1, cr, 1]);
+      if (cr < rows - 1 && cell.has(MazeCell.bottom)) {
+        candidates.add([MazeCell.bottom, cc, cr + 1, MazeCell.top]);
+      }
+      if (cc > 0 && cell.has(MazeCell.left)) {
+        candidates.add([MazeCell.left, cc - 1, cr, MazeCell.right]);
+      }
       if (candidates.isEmpty) continue;
       final pick = candidates[rng.nextInt(candidates.length)];
-      _knock(grid[cr][cc], pick[0]);
-      _knock(grid[pick[2]][pick[1]], pick[3]);
-    }
-  }
-
-  static void _knock(MazeCell cell, int side) {
-    switch (side) {
-      case 0:
-        cell.top = false;
-        break;
-      case 1:
-        cell.right = false;
-        break;
-      case 2:
-        cell.bottom = false;
-        break;
-      case 3:
-        cell.left = false;
-        break;
+      cell.knock(pick[0]);
+      grid[pick[2]][pick[1]].knock(pick[3]);
     }
   }
 
@@ -170,10 +168,10 @@ class MazeModel {
 
   bool canMove(int dc, int dr) {
     final cell = grid[playerRow][playerCol];
-    if (dc == 1 && dr == 0) return !cell.right;
-    if (dc == -1 && dr == 0) return !cell.left;
-    if (dc == 0 && dr == 1) return !cell.bottom;
-    if (dc == 0 && dr == -1) return !cell.top;
+    if (dc == 1 && dr == 0) return !cell.has(MazeCell.right);
+    if (dc == -1 && dr == 0) return !cell.has(MazeCell.left);
+    if (dc == 0 && dr == 1) return !cell.has(MazeCell.bottom);
+    if (dc == 0 && dr == -1) return !cell.has(MazeCell.top);
     return false;
   }
 

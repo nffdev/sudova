@@ -235,20 +235,20 @@ class _MazePainter extends CustomPainter {
         final cell = maze.grid[r][c];
         final x = c * cellSize;
         final y = r * cellSize;
-        if (cell.top) {
+        if (cell.has(MazeCell.top)) {
           canvas.drawLine(Offset(x, y), Offset(x + cellSize, y), _wallPaint);
         }
-        if (cell.left) {
+        if (cell.has(MazeCell.left)) {
           canvas.drawLine(Offset(x, y), Offset(x, y + cellSize), _wallPaint);
         }
-        if (c == maze.cols - 1 && cell.right) {
+        if (c == maze.cols - 1 && cell.has(MazeCell.right)) {
           canvas.drawLine(
             Offset(x + cellSize, y),
             Offset(x + cellSize, y + cellSize),
             _wallPaint,
           );
         }
-        if (r == maze.rows - 1 && cell.bottom) {
+        if (r == maze.rows - 1 && cell.has(MazeCell.bottom)) {
           canvas.drawLine(
             Offset(x, y + cellSize),
             Offset(x + cellSize, y + cellSize),
