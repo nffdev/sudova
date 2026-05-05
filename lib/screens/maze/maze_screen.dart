@@ -14,6 +14,8 @@ class MazeScreen extends StatefulWidget {
 }
 
 class _MazeScreenState extends State<MazeScreen> {
+  static const double _dragThresholdRatio = 0.5;
+
   Difficulty _difficulty = Difficulty.easy;
   late MazeModel _maze;
   int _moves = 0;
@@ -39,7 +41,7 @@ class _MazeScreenState extends State<MazeScreen> {
   void _onPanUpdate(DragUpdateDetails details, double cellSize) {
     if (_maze.isComplete) return;
     _dragAccum += details.delta;
-    final threshold = cellSize * 0.5;
+    final threshold = cellSize * _dragThresholdRatio;
 
     while (_dragAccum.dx.abs() >= threshold ||
         _dragAccum.dy.abs() >= threshold) {

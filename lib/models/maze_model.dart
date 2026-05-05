@@ -22,22 +22,16 @@ class MazeModel {
     required this.grid,
   });
 
+  static const Map<Difficulty, int> _sizeByDifficulty = {
+    Difficulty.easy: 8,
+    Difficulty.medium: 12,
+    Difficulty.hard: 16,
+    Difficulty.expert: 20,
+  };
+  static const double _loopRatio = 0.04;
+
   factory MazeModel.generate(Difficulty difficulty) {
-    int size;
-    switch (difficulty) {
-      case Difficulty.easy:
-        size = 8;
-        break;
-      case Difficulty.medium:
-        size = 12;
-        break;
-      case Difficulty.hard:
-        size = 16;
-        break;
-      case Difficulty.expert:
-        size = 20;
-        break;
-    }
+    final size = _sizeByDifficulty[difficulty]!;
     final grid = List.generate(
       size,
       (_) => List.generate(size, (_) => MazeCell()),
@@ -135,7 +129,7 @@ class MazeModel {
     int rows,
     Random rng,
   ) {
-    final extra = ((cols * rows) * 0.04).round();
+    final extra = ((cols * rows) * _loopRatio).round();
     for (int i = 0; i < extra; i++) {
       final cc = rng.nextInt(cols);
       final cr = rng.nextInt(rows);
