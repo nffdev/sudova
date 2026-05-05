@@ -27,8 +27,9 @@ class _MazeScreenState extends State<MazeScreen> {
     _newGame();
   }
 
-  void _newGame() {
+  void _newGame({Difficulty? difficulty}) {
     setState(() {
+      if (difficulty != null) _difficulty = difficulty;
       _maze = MazeModel.generate(_difficulty);
       _isComplete = false;
       _moves = 0;
@@ -111,10 +112,7 @@ class _MazeScreenState extends State<MazeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: DifficultySelector(
                 selected: _difficulty,
-                onChanged: (d) {
-                  _difficulty = d;
-                  _newGame();
-                },
+                onChanged: (d) => _newGame(difficulty: d),
               ),
             ),
             const SizedBox(height: 16),
