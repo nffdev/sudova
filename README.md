@@ -1,12 +1,14 @@
 # Sudova
 
-Train your brain with three unique puzzle games.
+Train your brain with five unique puzzle games.
 
 ## Games
 
 - **Sudoku** — Classic number placement puzzles from Easy to Expert
 - **Mental Calc** — Speed arithmetic challenges to sharpen your calculation skills
 - **CrossMath** — Equation crossword puzzles combining logic and math
+- **Magic Sort** — Reorder sequences against the clock
+- **Maze** — Procedurally generated labyrinths, never the same twice
 
 ## Features
 
