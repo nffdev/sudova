@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/haptic.dart';
-import '../../models/difficulty.dart';
-import '../../models/crossmath_model.dart';
-import '../../widgets/difficulty_selector.dart';
-import '../../widgets/game_timer.dart';
+import '../../core/difficulty.dart';
+import 'crossmath_model.dart';
+import '../../shared/widgets/difficulty_selector.dart';
+import '../../shared/widgets/game_timer.dart';
 
 class CrossMathScreen extends StatefulWidget {
   const CrossMathScreen({super.key});
