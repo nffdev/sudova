@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'difficulty.dart';
+import '../../core/difficulty.dart';
 
 enum CellType { number, operatorCell, equals, empty, result }
 

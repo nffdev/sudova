@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
-import '../../widgets/game_card.dart';
+import '../../shared/widgets/game_card.dart';
 import '../sudoku/sudoku_screen.dart';
 import '../mental_calc/mental_calc_screen.dart';
 import '../crossmath/crossmath_screen.dart';

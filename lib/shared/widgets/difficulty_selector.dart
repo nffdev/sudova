@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
-import '../core/utils/haptic.dart';
-import '../models/difficulty.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/utils/haptic.dart';
+import '../../core/difficulty.dart';
 
 class DifficultySelector extends StatelessWidget {
   final Difficulty selected;

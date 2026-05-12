@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'difficulty.dart';
+import '../../core/difficulty.dart';
 
 class SudokuModel {
   final List<List<int>> solution;
