@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/haptic.dart';
-import '../../models/difficulty.dart';
-import '../../models/sudoku_model.dart';
-import '../../widgets/difficulty_selector.dart';
-import '../../widgets/game_timer.dart';
-import '../../widgets/number_pad.dart';
+import '../../core/difficulty.dart';
+import 'sudoku_model.dart';
+import '../../shared/widgets/difficulty_selector.dart';
+import '../../shared/widgets/game_timer.dart';
+import '../../shared/widgets/number_pad.dart';
 
 class SudokuScreen extends StatefulWidget {
   const SudokuScreen({super.key});
