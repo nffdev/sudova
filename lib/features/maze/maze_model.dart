@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'difficulty.dart';
+import '../../core/difficulty.dart';
 
 typedef _Neighbor = ({int nc, int nr, int side, int opposite});
 typedef _FrontierWall = ({int cc, int cr, int side, int nc, int nr, int opposite});
