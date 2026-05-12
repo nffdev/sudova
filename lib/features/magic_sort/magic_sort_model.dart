@@ -1,5 +1,5 @@
 import 'dart:math';
-import 'difficulty.dart';
+import '../../core/difficulty.dart';
 
 class MagicSortModel {
   final List<List<int>> bottles;
