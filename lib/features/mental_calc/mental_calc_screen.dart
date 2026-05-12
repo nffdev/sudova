@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/haptic.dart';
-import '../../models/difficulty.dart';
-import '../../models/mental_calc_model.dart';
-import '../../widgets/difficulty_selector.dart';
+import '../../core/difficulty.dart';
+import 'mental_calc_model.dart';
+import '../../shared/widgets/difficulty_selector.dart';
 
 class MentalCalcScreen extends StatefulWidget {
   const MentalCalcScreen({super.key});
