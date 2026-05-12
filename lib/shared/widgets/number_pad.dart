@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
-import '../core/utils/haptic.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/utils/haptic.dart';
 
 class NumberPad extends StatelessWidget {
   final void Function(int number) onNumberTap;

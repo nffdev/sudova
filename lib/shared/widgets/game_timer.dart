@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../core/theme/app_theme.dart';
+import '../../core/theme/app_theme.dart';
 
 class GameTimer extends StatefulWidget {
   final bool isRunning;
